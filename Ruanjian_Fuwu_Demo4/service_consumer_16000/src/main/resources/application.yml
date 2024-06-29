@@ -1,0 +1,48 @@
+server:
+  port: 16000
+spring:
+  application:
+    name: "consumer-server"
+eureka:
+  instance:
+    prefer-ip-address: true
+    instance-id: "${spring.cloud.client.ip-address}:${server.port}"
+    lease-renewal-interval-in-seconds: 5
+    lease-expiration-duration-in-seconds: 15
+  client:
+    service-url:
+      defaultZone: "http://eurekaServer18000:18000/eureka/,http://eurekaServer18001:18001/eureka/"
+
+resilience4j:
+  circuitbreaker:
+    configs:
+      defalt:
+        wait-duration-in-open-state: 10000 #熔断器从打开到半开需要的时间
+        failure-rate-threshold: 10 #熔断器打开的失败阈值
+        event-consumer-buffer-size: 5 #事件缓冲区大小
+        automatic-transition-from-open-to-half-open-enabled: true #是否自动从打开到半开
+        recordExceptions: java.lang.Exception #记录的异常
+        register-health-indicator: true #健康检测
+        minimum-number-of-calls: 1 #出发熔断机制的最小请求个数
+        permitted-number-of-calls-in-half-open-state: 2 #半开时允许通过的请求个数
+
+    instances:
+      backendA:
+        base-config: default
+      backendB:
+        base-config: default
+        wait-duration-in-open-state: 3000
+        failure-rate-threshold: 15
+
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: info
+
+info:
+  app:
+    name: MyApplication
+    description: This is a sample Spring Boot application
+
